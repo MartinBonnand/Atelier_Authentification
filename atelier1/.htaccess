@@ -1,1 +1,4 @@
-admin:$2y$12$TouzwTnKtn.7ocLl4aUAqOczNkrqVUSXMik10Jg7B64FDveKyuSS.
+AuthName "Accès protégé"
+AuthType Basic
+AuthUserFile /home/teddy92240/www/.htpasswd
+Require valid-user

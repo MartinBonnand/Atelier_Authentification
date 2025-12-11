@@ -1,4 +1,4 @@
 AuthName "Accès protégé"
 AuthType Basic
-AuthUserFile home/bonnand/www/.htpasswd
+AuthUserFile home/Bonnand/www/.htpasswd
 Require valid-user

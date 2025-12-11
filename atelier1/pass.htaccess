@@ -1,4 +1,4 @@
 AuthName "Accès protégé"
 AuthType Basic
-AuthUserFile /chemin/absolu/au/.htpasswd
+AuthUserFile Atelier_Authentification/atelier1/.htpasswd
 Require valid-user

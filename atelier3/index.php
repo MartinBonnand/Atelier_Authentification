@@ -20,7 +20,7 @@ if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true && isset($_SE
         exit();
 
     } elseif ($_SESSION['username'] === 'user') {
-        header('Location: page_user.php');
+        header('Location: page_user.php')
         exit();
     }
 }

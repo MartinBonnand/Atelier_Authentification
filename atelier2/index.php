@@ -2,10 +2,9 @@
 // Démarrer une session utilisateur qui sera en mesure de pouvoir gérer les Cookies
 session_start();
 
-// Vérifier si l'utilisateur est déjà en possession d'un cookie valide (cookie authToken ayant le contenu 12345)
-// Si l'utilisateur possède déjà ce cookie, il sera redirigé automatiquement vers la page home.php
-// Dans le cas contraire il devra s'identifier.
-if (isset($_COOKIE['authToken']) && $_COOKIE['authToken'] === '12345') {
+// Vérifier si l'utilisateur est déjà en possession d'un cookie valide
+// Comme on génère maintenant un token unique, on vérifie uniquement la présence du cookie.
+if (isset($_COOKIE['authToken'])) {
     header('Location: page_admin.php');
     exit();
 }
@@ -16,11 +15,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'];
 
     // Vérification simple du username et de son password.
-    // Si ok alors on initialise le cookie sur le poste de l'utilisateur 
     if ($username === 'admin' && $password === 'secret') {
-        setcookie('authToken', '12345', time() + 60, '/', '', false, true); // Le Cookie est initialisé et valable pendant 1 heure (3600 secondes) 
-        header('Location: page_admin.php'); // L'utilisateur est dirigé vers la page home.php
+        
+        // 🔥 EXERCICE 2 : générer un token unique au lieu de 12345
+        $token = bin2hex(random_bytes(16)); 
+
+        // 🔥 EXERCICE 1 : cookie valable 60 secondes
+        setcookie('authToken', $token, time() + 60, '/', '', false, true);
+
+        header('Location: page_admin.php');
         exit();
+
     } else {
         $error = "Nom d'utilisateur ou mot de passe incorrect.";
     }
@@ -36,7 +41,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <h1>Atelier authentification par Cookie</h1>
-    <h3>La page <a href="page_admin.php">page_admin.php</a> est inaccéssible tant que vous ne vous serez pas connecté avec le login 'admin' et mot de passe 'secret'</h3>
+    <h3>
+        La page <a href="page_admin.php">page_admin.php</a> est inaccessible tant que vous ne vous serez pas connecté 
+        avec le login 'admin' et mot de passe 'secret'
+    </h3>
+
+    <?php if (!empty($error)) : ?>
+        <p style="color:red;"><?= htmlspecialchars($error) ?></p>
+    <?php endif; ?>
+
     <form method="POST" action="">
         <label for="username">Nom d'utilisateur :</label>
         <input type="text" id="username" name="username" required>

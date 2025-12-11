@@ -1,41 +1,89 @@
 <?php
-// Nom d'utilisateur et mot de passe corrects
-$valid_username = 'admin';
-$valid_password = 'secret';
 
-// Vérifier si l'utilisateur a envoyé des identifiants
-if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
-    // Envoyer un header HTTP pour demander les informations
-    header('WWW-Authenticate: Basic realm="Zone Protégée"');
+function demander_auth() {
+    header('WWW-Authenticate: Basic realm="Atelier 4 - Zone protégée"');
     header('HTTP/1.0 401 Unauthorized');
-    echo 'Vous devez entrer un nom d\'utilisateur et un mot de passe pour accéder à cette page.';
-    exit;
+    echo "Accès refusé. Veuillez actualiser la page et entrer vos identifiants.";
+    exit();
 }
 
-// Vérifier les identifiants envoyés
-if ($_SERVER['PHP_AUTH_USER'] !== $valid_username || $_SERVER['PHP_AUTH_PW'] !== $valid_password) {
-    // Si les identifiants sont incorrects
-    header('WWW-Authenticate: Basic realm="Zone Protégée"');
-    header('HTTP/1.0 401 Unauthorized');
-    echo 'Nom d\'utilisateur ou mot de passe incorrect.';
-    exit;
+if (isset($_GET['logout'])) {
+    demander_auth();
 }
 
-// Si les identifiants sont corrects
+
+if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
+    demander_auth();
+}
+
+$username = $_SERVER['PHP_AUTH_USER'];
+$password = $_SERVER['PHP_AUTH_PW'];
+
+
+$isAdmin = false;
+$isUser  = false;
+
+
+if ($username === 'admin' && $password === 'secret') {
+    $isAdmin = true;
+}
+
+if ($username === 'user' && $password === 'utilisateur') {
+    $isUser = true;
+}
+
+if (!$isAdmin && !$isUser) {
+    demander_auth();
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page protégée</title>
+    <title>Atelier 4 - Authentification par header HTTP</title>
 </head>
 <body>
-    <h1>Bienvenue sur la page protégée</h1>
-    <p>Ceci est une page protégée par une authentification simple via le header HTTP</p>
-    <p>C'est le serveur qui vous demande un nom d'utilisateur et un mot de passe via le header WWW-Authenticate</p>
-    <p>Aucun système de session ou cookie n'est utilisé pour cet atelier</p>
-    <p>Vous êtes connecté en tant que : <?php echo htmlspecialchars($_SERVER['PHP_AUTH_USER']); ?></p>
-    <a href="../index.html">Retour à l'accueil</a>  
+    <h1>Atelier 4 : Authentification via le header HTTP (Basic Auth)</h1>
+
+    <p>
+        Vous êtes connecté en tant que :
+        <strong><?= htmlspecialchars($username) ?></strong>
+        (profil <?= $isAdmin ? 'ADMIN' : 'USER' ?>).
+    </p>
+
+    <hr>
+
+    <h2>Contenu visible par tous les utilisateurs connectés</h2>
+    <p>Cette section est accessible à <strong>admin</strong> et à <strong>user</strong>.</p>
+
+    <?php if ($isAdmin): ?>
+        <hr>
+        <h2>Section réservée à l'ADMIN</h2>
+        <p>
+            Cette partie de la page n'est visible que si vous êtes connecté avec
+            le login <strong>admin</strong> et le mot de passe <strong>secret</strong>.
+        </p>
+        <ul>
+            <li>Accès à des informations sensibles</li>
+            <li>Fonctionnalités de gestion</li>
+            <li>Vue complète des données</li>
+        </ul>
+    <?php else: ?>
+        <hr>
+        <h2>Section ADMIN non visible</h2>
+        <p>
+            Vous êtes connecté en tant que <strong>user</strong>.<br>
+            Cette section est uniquement visible pour le profil <strong>admin</strong>.
+        </p>
+    <?php endif; ?>
+
+    <hr>
+    <p>
+        <a href="?logout=1">Changer d'utilisateur (forcer une nouvelle authentification)</a>
+    </p>
+    <p>
+        <em>Pensez à tester en navigation privée, comme demandé dans l'atelier.</em>
+    </p>
 </body>
 </html>

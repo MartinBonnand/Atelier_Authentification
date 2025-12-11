@@ -1,7 +1,8 @@
 <?php
 // Atelier 4 : Authentification simple via le header HTTP (Basic Auth)
+session_start();
 
-// 1. Fonction qui demande l'authentification au navigateur
+// Fonction qui force le navigateur à demander les identifiants
 function demander_auth() {
     header('WWW-Authenticate: Basic realm="Atelier 4 - Zone protégée"');
     header('HTTP/1.0 401 Unauthorized');
@@ -9,12 +10,14 @@ function demander_auth() {
     exit();
 }
 
-// 2. Gestion du "logout" (forcer le navigateur à redemander les identifiants)
+// Gestion du logout (forcer une nouvelle authentification)
 if (isset($_GET['logout'])) {
+    // Supprimer toute session existante et redemander l'auth
+    session_destroy();
     demander_auth();
 }
 
-// 3. Vérifier que le navigateur a bien envoyé des identifiants
+// Vérifier que le navigateur a envoyé des identifiants
 if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
     demander_auth();
 }
@@ -22,73 +25,58 @@ if (!isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
 $username = $_SERVER['PHP_AUTH_USER'];
 $password = $_SERVER['PHP_AUTH_PW'];
 
-// 4. Vérifier si c'est un user ou un admin
+// Définir les rôles
 $isAdmin = false;
 $isUser  = false;
 
-// Profil admin
 if ($username === 'admin' && $password === 'secret') {
     $isAdmin = true;
-}
-
-// Profil user
-if ($username === 'user' && $password === 'utilisateur') {
+} elseif ($username === 'user' && $password === 'utilisateur') {
     $isUser = true;
 }
 
-// Si ce n'est ni admin ni user => on redemande les identifiants
+// Si identifiants invalides
 if (!$isAdmin && !$isUser) {
     demander_auth();
 }
-
 ?>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Atelier 4 - Authentification par header HTTP</title>
+    <title>Atelier 4 - Authentification Basic Auth</title>
 </head>
 <body>
     <h1>Atelier 4 : Authentification via le header HTTP (Basic Auth)</h1>
 
     <p>
-        Vous êtes connecté en tant que :
-        <strong><?= htmlspecialchars($username) ?></strong>
-        (profil <?= $isAdmin ? 'ADMIN' : 'USER' ?>).
+        Vous êtes connecté en tant que : <strong><?= htmlspecialchars($username) ?></strong>
+        (profil <?= $isAdmin ? 'ADMIN' : 'USER' ?>)
     </p>
 
     <hr>
 
-    <h2>Contenu visible par tous les utilisateurs connectés</h2>
-    <p>Cette section est accessible à <strong>admin</strong> et à <strong>user</strong>.</p>
+    <h2>Contenu accessible à tous les utilisateurs connectés</h2>
+    <p>Cette section est visible par <strong>admin</strong> et <strong>user</strong>.</p>
 
     <?php if ($isAdmin): ?>
         <hr>
         <h2>Section réservée à l'ADMIN</h2>
-        <p>
-            Cette partie de la page n'est visible que si vous êtes connecté avec
-            le login <strong>admin</strong> et le mot de passe <strong>secret</strong>.
-        </p>
+        <p>Cette partie de la page n'est visible que par l'utilisateur <strong>admin</strong>.</p>
         <ul>
-            <li>Accès à des informations sensibles</li>
+            <li>Accès aux informations sensibles</li>
             <li>Fonctionnalités de gestion</li>
             <li>Vue complète des données</li>
         </ul>
     <?php else: ?>
         <hr>
         <h2>Section ADMIN non visible</h2>
-        <p>
-            Vous êtes connecté en tant que <strong>user</strong>.<br>
-            Cette section est uniquement visible pour le profil <strong>admin</strong>.
-        </p>
+        <p>Vous êtes connecté en tant que <strong>user</strong>. Cette section est uniquement visible pour le profil <strong>admin</strong>.</p>
     <?php endif; ?>
 
     <hr>
-    <p>
-        <a href="?logout=1">Changer d'utilisateur (forcer une nouvelle authentification)</a>
-    </p>
-    <p>
-        <em>Pensez à tester en navigation privée, comme demandé dans l'atelier.</em>
-    </p>
+    <p><a href="?logout=1">Changer d'utilisateur (forcer nouvelle authentification)</a></p>
+    <p><em>Testez en navigation privée pour bien voir le comportement.</em></p>
 </body>
 </html>

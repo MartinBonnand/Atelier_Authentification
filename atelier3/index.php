@@ -1,29 +1,45 @@
 <?php
-// Démarre la session
+// Démarrer la session
 session_start();
 
-// Vérifier si l'utilisateur est déjà connecté
-if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
-    header('Location: page_admin.php'); // Si l'utilisateur s'est déjà connecté alors il sera automatiquement redirigé vers la page protected.php
-    exit();
+//compte les visites
+if (!isset($_SESSION['visites_index'])) {
+    $_SESSION['visites_index'] = 0;
 }
+$_SESSION['visites_index']++;
 
-// Gérer le formulaire de connexion
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-
-    // Vérification simple des identifiants (à améliorer avec une base de données)
-    if ($username === 'admin' && $password === 'secret') {
-        // Stocker les informations utilisateur dans la session
-        $_SESSION['loggedin'] = true;
-        $_SESSION['username'] = $username;
-
-        // Rediriger vers la page protégée
+if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true && isset($_SESSION['username'])) {
+    
+    if ($_SESSION['username'] === 'admin') {
         header('Location: page_admin.php');
         exit();
+
+    } elseif ($_SESSION['username'] === 'user') {
+        header('Location: page_user.php');
+        exit();
+    }
+}
+//formulaire
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = $_POST['username'] ?? '';
+    $password = $_POST['password'] ?? '';
+
+
+    if ($username === 'admin' && $password === 'secret') {
+        $_SESSION['loggedin'] = true;
+        $_SESSION['username'] = 'admin';
+        header('Location: page_admin.php');
+        exit();
+
+   
+    } elseif ($username === 'user' && $password === 'utilisateur') {
+        $_SESSION['loggedin'] = true;
+        $_SESSION['username'] = 'user';
+        header('Location: page_user.php');
+        exit();
+
     } else {
-        $error = "Nom d'utilisateur ou mot de passe incorrect.";
+        $error = "Identifiants incorrects.";
     }
 }
 ?>
@@ -32,21 +48,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion</title>
+    <title>Atelier 3 – Sessions</title>
 </head>
 <body>
-    <h1>Atelier authentification par Session</h1>
-    <h3>La page <a href="page_admin.php">page_admin.php</a> de cet atelier 3 est inaccéssible tant que vous ne vous serez pas connecté avec le login 'admin' et mot de passe 'secret'</h3>
+
+    <h1>Atelier 3 : Authentification par Session</h1>
+
+    <p>
+        Vous avez visité cette page d'accueil 
+        <strong><?= $_SESSION['visites_index']; ?></strong> fois.
+    </p>
+
+    <?php if (!empty($error)) : ?>
+        <p style="color:red;"><?= htmlspecialchars($error); ?></p>
+    <?php endif; ?>
+
     <form method="POST" action="">
-        <label for="username">Nom d'utilisateur :</label>
-        <input type="text" id="username" name="username" required>
+        <label>Nom d'utilisateur :</label>
+        <input type="text" name="username" required>
         <br><br>
-        <label for="password">Mot de passe :</label>
-        <input type="password" id="password" name="password" required>
+
+        <label>Mot de passe :</label>
+        <input type="password" name="password" required>
         <br><br>
+
         <button type="submit">Se connecter</button>
     </form>
+
     <br>
-    <a href="../index.html">Retour à l'accueil</a>  
+    <a href="../index.html">Retour à l'accueil</a>
+
 </body>
 </html>
